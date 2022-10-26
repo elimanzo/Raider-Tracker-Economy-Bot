@@ -5,17 +5,17 @@ module.exports = (client) => {
     const options = [
       {
         type: ActivityType.Watching,
-        text: "Over the Money Empire",
+        text: "Raiders wipe to mechanics",
         status: "online",
       },
       {
         type: ActivityType.Listening,
-        text: "for commands",
+        text: "Rat Raiders",
         status: "idle",
       },
       {
         type: ActivityType.Playing,
-        text: "with Discord.js",
+        text: "Phasmophobia",
         status: "dnd",
       },
     ];
