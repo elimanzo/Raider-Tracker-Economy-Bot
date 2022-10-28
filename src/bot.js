@@ -1,10 +1,10 @@
 require("dotenv").config();
-const { DISCORD_TOKEN, DATABASE_TOKEN, CLIENT_ID, GUILD_ID, LEADER_ID, SCHEDULER_ID } = process.env;
+const { DISCORD_TOKEN, DATABASE_TOKEN, CLIENT_ID, GUILD_ID, LEADER_ID, SCHEDULER_ID, RETIRED_ID } = process.env;
 const { connect } = require("mongoose");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
 
-const client = new Client({ intents: 32737});
+const client = new Client({ intents: 32767 });
 client.commands = new Collection();
 client.buttons = new Collection();
 client.modals = new Collection();

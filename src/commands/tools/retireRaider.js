@@ -8,7 +8,7 @@ module.exports = {
       subcommand
         .setName("user")
         .setDescription("Retires/Unretires user mentioned")
-        .addUserOption((option) =>
+        .addMentionableOption((option) =>
           option
             .setName("discord_id")
             .setDescription(
@@ -25,34 +25,47 @@ module.exports = {
       });
       return;
     }
-    let user = interaction.options.getUser("discord_id")
-      ? interaction.options.getUser("discord_id")
-      : interaction.user;
+    let user = interaction.options.getMentionable("discord_id")
+      ? interaction.options.getMentionable("discord_id")
+      : interaction.member;
+
+    const { roles } = user;
+    const raiderRole = await interaction.guild.roles
+      .fetch(process.env.RAIDER_ID)
+      .catch(console.error);
+    const retiredRole = await interaction.guild.roles
+      .fetch(process.env.RETIRED_ID)
+      .catch(console.error);
+    
     const raiderProfile = await client.findRaider(
       interaction.member,
-      user.id
+      user.user.id
     );
     if (!raiderProfile) {
       await interaction.reply({
-        content: ` <@${user.id}> does not exist, use \`/create-raider user discord_id:<@${user.id}>\` to create a new Raider `,
+        content: ` <@${user.user.id}> does not exist, use \`/create-raider user discord_id:<@${user.user.id}>\` to create a new Raider `,
       });
       return;
     }
 
     await client.retireRaider(
       interaction.member,
-      user.id,
+      user.user.id,
       raiderProfile.isRetired
     );
 
-    if(raiderProfile.isRetired) {
+    if (raiderProfile.isRetired) {
+      await roles.remove(retiredRole).catch(console.error);
+      await roles.add(raiderRole).catch(console.error);
       await interaction.reply({
-        content: `<@${user.id}> is out of retirement! Use \`/show-raider user discord_id:<@${user.id}>\` to show Raider information `,
+        content: `<@${user.user.id}> is out of retirement! Use \`/show-raider user discord_id:<@${user.user.id}>\` to show Raider information `,
       });
     } else {
+      await roles.remove(raiderRole).catch(console.error);
+      await roles.add(retiredRole).catch(console.error);
       await interaction.reply({
-        content: `Welcome <@${user.id}> to retirement! Use \`/show-raider user discord_id:<@${user.id}>\` to show Raider information `,
+        content: `Welcome <@${user.user.id}> to retirement! Use \`/show-raider user discord_id:<@${user.user.id}>\` to show Raider information `,
       });
     }
-  }
+  },
 };

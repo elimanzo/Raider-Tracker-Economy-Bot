@@ -24,6 +24,7 @@ module.exports = {
       });
       return;
     }
+    
     let user = interaction.options.getMentionable("discord_id")
       ? interaction.options.getMentionable("discord_id")
       : interaction.member;
@@ -34,7 +35,14 @@ module.exports = {
       });
       return;
     }
-    
+
+    const { roles } = user;
+
+    const raiderRole = await interaction.guild.roles
+      .fetch(process.env.RAIDER_ID)
+      .catch(console.error);
+    await roles.add(raiderRole).catch(console.error);
+
     const raiderProfile = await client.createRaider(
       interaction.member,
       user.user,
@@ -69,9 +77,7 @@ module.exports = {
         },
         {
           name: `Last Sale`,
-          value: `<t:${Math.floor(
-            raiderProfile.lastSale.getTime() / 1000
-          )}:R>`,
+          value: `<t:${Math.floor(raiderProfile.lastSale.getTime() / 1000)}:R>`,
         },
         {
           name: `Server`,
