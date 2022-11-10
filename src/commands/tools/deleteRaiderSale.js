@@ -10,13 +10,11 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("delete-sale")
     .setDescription("Deletes a Raider Sale")
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("sale")
+    .addStringOption((option) =>
+      option
+        .setName("sale_id")
         .setDescription("Deletes Raider sale from the ID provided")
-        .addStringOption((option) =>
-          option.setName("sale_id").setDescription("Sale ID'").setRequired(true)
-        )
+        .setRequired(true)
     ),
   async execute(interaction, client) {
     if (interaction.member._roles.indexOf(process.env.LEADER_ID) === -1) {

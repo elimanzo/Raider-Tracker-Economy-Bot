@@ -8,12 +8,12 @@ const {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("create-sale")
+    .setName("create-sale-form")
     .setDescription("Return a completed sale form")
     .addSubcommand((subcommand) =>
       subcommand
         .setName("client")
-        .setDescription("Creates Raider Client for the user mentioned")
+        .setDescription("Creates a Sale associated with the Client mentioned")
         .addUserOption((option) =>
           option
             .setName("client_id")
@@ -22,7 +22,6 @@ module.exports = {
             )
             .setRequired(true)
         )
-        
     ),
   async execute(interaction, client) {
     if (interaction.member._roles.indexOf(process.env.SCHEDULER_ID) === -1) {
@@ -56,7 +55,7 @@ module.exports = {
         .setLabel(`Date of Sale`)
         .setRequired(true)
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder("Date (YYYY-MM-DD)");
+        .setPlaceholder("Date (MM/DD/YYYY HH:MM AM/PM TIMEZONE)");
       const raiderIds = new TextInputBuilder()
         .setCustomId("raiderIds")
         .setLabel(`Raider(s) Discord ID(s)`)
@@ -83,7 +82,7 @@ module.exports = {
       await interaction.showModal(modal);
     } else {
       await interaction.reply({
-        content: ` Please mention the client. right click user and copy ID. then run \`/create-sale client client_id:<@discord_id>\` `,
+        content: ` Please mention the client. right click user and copy ID. then run \`/create-sale-form client client_id:<@discord_id>\` `,
       });
       return;
     }

@@ -80,6 +80,10 @@ module.exports = {
           value: `<t:${Math.floor(raiderProfile.lastSale.getTime() / 1000)}:R>`,
         },
         {
+          name: `Last Sign Up`,
+          value: `<t:${Math.floor(raiderProfile.lastSignup.getTime() / 1000)}:R>`,
+        },
+        {
           name: `Server`,
           value: `${raiderProfile.server}`,
         },

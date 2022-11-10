@@ -18,7 +18,7 @@ module.exports = {
     const salesProfile = await client.getMonthlySales();
     contentList.push(`There has been **${salesProfile.length}** sales in the past 30 days\n`);
     for (let i = 0; i < raidersProfile.length; i++) {
-        contentList.push(`<@${raidersProfile[i].userId}> last sale was on <t:${Math.floor(raidersProfile[i].lastSale.getTime() / 1000)}:F> **<t:${Math.floor(raidersProfile[i].lastSale.getTime() / 1000)}:R>**\n`)
+        contentList.push(`<@${raidersProfile[i].userId}> last sale was on <t:${Math.floor(raidersProfile[i].lastSale.getTime() / 1000)}:F> **<t:${Math.floor(raidersProfile[i].lastSale.getTime() / 1000)}:R>**. Last Signup was **<t:${Math.floor(raidersProfile[i].lastSignup.getTime() / 1000)}:R>**\n`)
     }
 
     await interaction.reply({

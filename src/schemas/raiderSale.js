@@ -5,6 +5,8 @@ const raiderSaleSchema = new Schema({
   saleType: String,
   scheduler: String,
   clientId: String,
+  saleThread: {type: Schema.Types.Mixed, default: {}},
+  saleThreadUrl: String,
   saleDate: {
     type: Date,
     default: new Date(),

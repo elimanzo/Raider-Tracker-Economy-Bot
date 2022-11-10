@@ -10,6 +10,10 @@ const raiderSchema = new Schema({
     type: Date,
     default: new Date(),
   },
+  lastSignup: {
+    type: Date,
+    default: new Date(),
+  },
   joinedDate: {
     type: Date,
     default: new Date(),

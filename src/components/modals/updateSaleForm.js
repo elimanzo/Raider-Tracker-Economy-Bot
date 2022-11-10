@@ -8,7 +8,7 @@ module.exports = {
     let saleCost = 0;
     const saleId = interaction.fields.getTextInputValue("saleId").trim();
     const saleType = interaction.fields.getTextInputValue("saleType");
-    const saleDate = new Date(interaction.fields.getTextInputValue("saleDate"));
+    const saleDate = new Date(Date.parse(interaction.fields.getTextInputValue("saleDate")));
     const raiderIds = interaction.fields
       .getTextInputValue("raiderIds")
       .split(",")
@@ -32,6 +32,7 @@ module.exports = {
       if (!raiderProfile) {
         await interaction.reply({
           content: ` <@${raiderIds[i]}> does not exist, use \`/create-raider user discord_id:<@${raiderIds[i]}>\` to create a new Raider `,
+          ephemeral: true,
         });
         return;
       }
@@ -42,6 +43,7 @@ module.exports = {
     if (!saleProfile) {
       await interaction.reply({
         content: `Sale ID: **${saleId}** was changed (Do not change the sale ID in the update form) `,
+        ephemeral: true,
       });
       return;
     }
@@ -49,7 +51,8 @@ module.exports = {
     if (!(saleDate instanceof Date) || isNaN(saleDate)) {
       await interaction.reply({
         content:
-          "Invalid Date Input (Make sure the date has the correct format (YYYY-MM-DD)",
+          "Invalid Date Input (Make sure the date has the correct format (\`MM/DD/YYYY HH:MM AM/PM TIMEZONE\`)",
+          ephemeral: true,
       });
       return;
     }
@@ -58,6 +61,7 @@ module.exports = {
       await interaction.reply({
         content:
           "Invalid User Input (total amount of Raider IDs/Gil Amounts do not match)",
+          ephemeral: true,
       });
       return;
     }
@@ -71,6 +75,7 @@ module.exports = {
         await interaction.reply({
           content:
             "Invalid User Input (Raider IDs/Gil Amounts were either not a number or a number <= 0)",
+            ephemeral: true,
         });
         return;
       }
@@ -113,20 +118,22 @@ module.exports = {
     // Updates every Raider that completed the sale
 
     for (let i = 0; i < removeFundsMap.length; i++) {
-      const raiderProfile = await client.changeFunds(
+      await client.changeFunds(
         interaction.member,
         removeFundsMap[i].raiderId,
         -removeFundsMap[i].gil,
-        saleProfile._id.toString()
+        saleProfile._id.toString(),
+        true
       );
     }
 
     for (let i = 0; i < addFundsMap.length; i++) {
-      const raiderProfile = await client.changeFunds(
+      await client.changeFunds(
         interaction.member,
         addFundsMap[i].raiderId,
         addFundsMap[i].gil,
-        saleProfile._id.toString()
+        saleProfile._id.toString(),
+        false
       );
     }
     await interaction.reply({

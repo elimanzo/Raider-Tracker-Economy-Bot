@@ -15,7 +15,7 @@ module.exports = {
         .setName("sale")
         .setDescription("Shows a sale from the ID provided")
         .addStringOption((option) =>
-          option.setName("sale_id").setDescription("Sale ID'").setRequired(true)
+          option.setName("sale_id").setDescription("Sale ID'")
         )
     ),
   async execute(interaction, client) {
@@ -26,15 +26,33 @@ module.exports = {
       });
       return;
     }
-    const saleId = interaction.options.getString("sale_id");
-    const saleProfile = await client.findRaiderSale(saleId);
 
-    if (!saleProfile) {
-      await interaction.reply({
-        content: `Sale ID: **${saleId}** does not exist `,
-      });
-      return;
+    const threadId = interaction.channelId;
+    const saleId = interaction.options.getString("sale_id");
+    let saleProfile = null;
+    if (saleId) {
+      saleProfile = await client.findRaiderSale(saleId);
+      if (!saleProfile) {
+        await interaction.reply({
+          content: `Sale ID: **${saleId}** does not exist `,
+          ephemeral: true,
+        });
+        return;
+      }
+    } else {
+      saleProfile = await client.findRaiderSaleByThread(
+        interaction.member,
+        threadId
+      );
+      if (!saleProfile) {
+        await interaction.reply({
+          content: `Command \`/show-sale\` is not in it\'s appropriate Sale Thread`,
+          ephemeral: true,
+        });
+        return;
+      }
     }
+
     const modal = new ModalBuilder()
       .setCustomId(`raiderUpdateSaleClientForm`)
       .setTitle(`Sale`);

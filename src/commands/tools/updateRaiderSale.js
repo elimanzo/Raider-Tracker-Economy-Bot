@@ -57,7 +57,7 @@ module.exports = {
       .setLabel(`Date of Sale`)
       .setRequired(true)
       .setStyle(TextInputStyle.Short)
-      .setPlaceholder("Date (YYYY-MM-DD)")
+      .setPlaceholder("Date (MM/DD/YYYY HH:MM AM/PM TIMEZONE)")
       .setValue(`${saleProfile.saleDate}`);
     const raiderIds = new TextInputBuilder()
       .setCustomId("raiderIds")

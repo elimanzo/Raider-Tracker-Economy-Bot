@@ -7,9 +7,13 @@ module.exports = {
   async execute(interaction, client) {
     let mentionableList = [];
     let saleCost = 0;
+    const milliSec = 60000; // how many milliseconds in a minute
     const clientId = interaction.fields.getTextInputValue("clientId").trim();
     const saleType = interaction.fields.getTextInputValue("saleType");
-    const saleDate = new Date(interaction.fields.getTextInputValue("saleDate"));
+    const saleDate =
+      interaction.fields.getTextInputValue("saleDate").toUpperCase() === "ASAP"
+        ? Date.now() + 30 * milliSec
+        : Date.parse(interaction.fields.getTextInputValue("saleDate"));
     const raiderIds = interaction.fields
       .getTextInputValue("raiderIds")
       .split(",")
@@ -25,10 +29,11 @@ module.exports = {
 
     // Input Validation
 
-    if (!(saleDate instanceof Date) || isNaN(saleDate)) {
+    // Must be a valid date
+    if (saleDate < Date.now() || isNaN(saleDate)) {
       await interaction.reply({
-        content:
-          "Invalid Date Input (Make sure the date has the correct format (YYYY-MM-DD)",
+        content: `Incorrect Date Format or Date is in the past. Please have a correct date format (\`MM/DD/YYYY HH:MM AM/PM TIMEZONE\`) `,
+        ephemeral: true,
       });
       return;
     }
@@ -75,7 +80,7 @@ module.exports = {
     const saleProfile = await client.createSale(
       interaction.member,
       saleType,
-      saleDate,
+      new Date(saleDate),
       saleCost,
       raiderIds,
       gilAmounts,
@@ -137,11 +142,12 @@ module.exports = {
 
     // Updates every Raider that completed the sale
     for (let i = 0; i < raiderIds.length; i++) {
-      const raiderProfile = await client.changeFunds(
+      await client.changeFunds(
         interaction.member,
         raiderIds[i],
         Number(gilAmounts[i]),
-        saleProfile._id.toString()
+        saleProfile._id.toString(),
+        false
       );
     }
     await interaction.reply({

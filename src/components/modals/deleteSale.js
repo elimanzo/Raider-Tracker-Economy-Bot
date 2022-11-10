@@ -16,11 +16,12 @@ module.exports = {
 
     if (confirmation.toUpperCase() === "YES") {
       for (let i = 0; i < saleProfile.raiders.raiderIds.length; i++) {
-        const raiderProfile = await client.changeFunds(
+        await client.changeFunds(
           interaction.member,
           saleProfile.raiders.raiderIds[i],
           -saleProfile.raiders.raiderPayout[i],
-          saleProfile._id.toString()
+          saleProfile._id.toString(),
+          true
         );
       }
       await client.deleteRaiderSale(saleId);

@@ -9,7 +9,7 @@ module.exports = {
         .setName("sale")
         .setDescription("Shows a Raider sale from the ID provided")
         .addStringOption((option) =>
-          option.setName("sale_id").setDescription("Sale ID'").setRequired(true)
+          option.setName("sale_id").setDescription("Sale ID'")
         )
     ),
   async execute(interaction, client) {
@@ -22,14 +22,31 @@ module.exports = {
     }
     let mentionableList = [];
     const saleId = interaction.options.getString("sale_id");
-    const saleProfile = await client.findRaiderSale(saleId);
-
-    if (!saleProfile) {
-      await interaction.reply({
-        content: `Sale ID: **${saleId}** does not exist `,
-      });
-      return;
+    const threadId = interaction.channelId;
+    let saleProfile = null;
+    if (saleId) {
+      saleProfile = await client.findRaiderSale(saleId);
+      if (!saleProfile) {
+        await interaction.reply({
+          content: `Sale ID: **${saleId}** does not exist `,
+          ephemeral: true,
+        });
+        return;
+      }
+    } else {
+      saleProfile = await client.findRaiderSaleByThread(
+        interaction.member,
+        threadId
+      );
+      if (!saleProfile) {
+        await interaction.reply({
+          content: `Command \`/show-sale\` is not in its appropriate Sale Thread`,
+          ephemeral: true,
+        });
+        return;
+      }
     }
+
     for (let i = 0; i < saleProfile.raiders.totalRaiders; i++) {
       mentionableList.push(
         `\n<@${
@@ -43,6 +60,7 @@ module.exports = {
       .setDescription(
         `Displaying the Sale Information for ***${saleProfile.saleType}***`
       )
+      .setURL(saleProfile.saleThreadUrl)
       .setColor(0x18e1ee)
       .setTimestamp(Date.now())
       .setAuthor({
