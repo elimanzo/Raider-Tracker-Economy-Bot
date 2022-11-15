@@ -36,7 +36,6 @@ module.exports = {
 
     if (saleProfile) {
       const raidersProfile = await client.getSaleAddresses(saleProfile);
-      console.log(raidersProfile);
       let addressList = [];
       for(let raider of raidersProfile) {
         addressList.push(`<@${raider.userId}> Server: **${raider.server}** Address: **${raider.server}**\n`)

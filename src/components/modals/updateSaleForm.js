@@ -137,7 +137,7 @@ module.exports = {
       );
     }
     await interaction.reply({
-      content: `**${saleProfile.saleType}** has been updated use \`/show-sale sale  sale_id:${saleProfile._id}\` to get more info`,
+      content: `**${saleProfile.saleType}** has been updated use \`/show-sale  sale_id:${saleProfile._id}\` to get more info`,
     });
   },
 };

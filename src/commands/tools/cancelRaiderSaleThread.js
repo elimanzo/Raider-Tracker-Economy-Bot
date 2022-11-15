@@ -21,16 +21,19 @@ module.exports = {
 
     const confirmation = interaction.options.getString("confirmation");
     const threadId = interaction.channelId;
-    
+
     if (confirmation.toUpperCase() === "YES") {
-      const saleProfile = await client.deleteRaiderSaleThread(threadId);
+      const saleProfile = await client.findRaiderSaleByThread(
+        interaction.member,
+        threadId
+      );
       if (!saleProfile) {
         await interaction.reply({
           content: `Sale does not exist or You must be in the appropriate sale thread`,
         });
         return;
       }
-      for (let i = 0; i < saleProfile.raiders.raiderIds.length; i++) {
+      for (let i = 0; i < saleProfile.raiders.totalRaiders; i++) {
         await client.changeFunds(
           interaction.member,
           saleProfile.raiders.raiderIds[i],
@@ -38,11 +41,13 @@ module.exports = {
           saleProfile._id.toString(),
           true
         );
+
+        await client.deleteRaiderSaleThread(threadId);
       }
       await interaction.reply({
         content: `Sale has been cancelled!`,
       });
-      await interaction.channel.setName('CANCELLED');
+      await interaction.channel.setName("CANCELLED");
       await interaction.channel.setLocked(true);
       await interaction.channel.setArchived(true);
       return;

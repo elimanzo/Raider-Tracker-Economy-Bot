@@ -4,13 +4,8 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("show-sale")
     .setDescription("Creates a Raiders Sale")
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("sale")
-        .setDescription("Shows a Raider sale from the ID provided")
-        .addStringOption((option) =>
-          option.setName("sale_id").setDescription("Sale ID'")
-        )
+    .addStringOption((option) =>
+      option.setName("sale_id").setDescription("The Sale ID of the sale")
     ),
   async execute(interaction, client) {
     if (interaction.member._roles.indexOf(process.env.SCHEDULER_ID) === -1) {
@@ -54,6 +49,8 @@ module.exports = {
         }> - ${saleProfile.raiders.raiderPayout[i].toLocaleString()} gil`
       );
     }
+
+    if (mentionableList.length == 0) mentionableList.push('There\'s no roster yet');
 
     const embed = new EmbedBuilder()
       .setTitle(`${saleProfile.saleType}'s Sale Information`)

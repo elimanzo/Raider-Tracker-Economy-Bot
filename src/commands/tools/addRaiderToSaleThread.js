@@ -16,7 +16,7 @@ module.exports = {
       option
         .setName("gil")
         .setDescription("The total amount of gil the raider received")
-        .setMinValue(1)
+        .setMinValue(0)
         .setRequired(true)
     ),
   async execute(interaction, client) {

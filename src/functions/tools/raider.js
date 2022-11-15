@@ -409,9 +409,8 @@ module.exports = (client) => {
     return saleProfile;
   };
   client.deleteRaiderSaleThread = async (threadId) => {
-    const saleProfile = await RaiderSale.findOneAndDelete({
+    await RaiderSale.findOneAndDelete({
       saleThread: threadId,
     });
-    return saleProfile;
   };
 };

@@ -22,7 +22,7 @@ module.exports = {
     saleProfile = await client.updateRaiderSaleClientScheduler(saleId, clientSaleId, schedulerId);
     saleProfile = await client.findRaiderSale(saleId);
     await interaction.reply({
-      content: `Client: <@${saleProfile.clientId}>\nScheduler:<@${saleProfile.scheduler}>\nSale: **${saleProfile.saleType}**\nUse \`/show-sale sale  sale_id:${saleProfile._id}\` for more info`,
+      content: `Client: <@${saleProfile.clientId}>\nScheduler:<@${saleProfile.scheduler}>\nSale: **${saleProfile.saleType}**\nUse \`/show-sale  sale_id:${saleProfile._id}\` for more info`,
     });
   },
 };

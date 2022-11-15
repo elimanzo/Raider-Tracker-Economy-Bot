@@ -148,6 +148,7 @@ function updateRoster(
   dpsEmoji
 ) {
   let roster = { tanks: [], healers: [], dps: [], subs: [] };
+  let rosterChesterIds = [];
   if (comp.chestSize !== 0) {
     roster = updateRosterWithChestPrio(
       chestSignUps,
@@ -158,21 +159,17 @@ function updateRoster(
     );
   }
 
+  let chesterList = [
+    ...(roster.tanks.length === 0 ? [] : roster.tanks),
+    ...(roster.healers.length === 0 ? [] : roster.healers),
+    ...(roster.dps.length === 0 ? [] : roster.dps),
+  ];
+
+  chesterList.forEach(([key, value]) => rosterChesterIds.push(key));
   for (let [key, value] of signUps) {
-    if (roster.tanks.length != 0) {
-      if (roster.tanks[0].indexOf(key) !== -1) {
-        roster.subs.push([key, value]);
-        continue;
-      }
-    }
-    if (roster.healers.length != 0) {
-      if (roster.healers[0].indexOf(key) !== -1) {
-        roster.subs.push([key, value]);
-        continue;
-      }
-    }
-    if (roster.dps.length != 0) {
-      if (roster.dps[0].indexOf(key) !== -1) {
+    
+    if (rosterChesterIds.length != 0) {
+      if (rosterChesterIds.indexOf(key) !== -1) {
         roster.subs.push([key, value]);
         continue;
       }
@@ -432,7 +429,7 @@ module.exports = {
       healerSize: interaction.options.getInteger("healers"),
       dpsSize: interaction.options.getInteger("dps"),
       chestSize: oneChesterAmount ? oneChesterAmount : 0,
-    }; 
+    };
     const clientId = !interaction.options.getUser("client_id")
       ? "Not Setup Yet"
       : interaction.options.getUser("client_id");
@@ -555,7 +552,7 @@ module.exports = {
     const saleThread = await interaction.channel.threads.create({
       name: `${formattedDate} - ${content}`,
     });
-    
+
     const saleProfile = await client.createThreadSale(
       interaction.member,
       content,
@@ -570,7 +567,7 @@ module.exports = {
       ephemeral: true,
     });
     const threadHeader = await saleThread.send({
-      content: `<@&${
+      content: `Sale ID: ||\`${saleProfile._id}\`||\n<@&${
         raiderRole.id
       }>\nContent: **${content}**\nDate: <t:${Math.floor(
         saleDate / 1000
@@ -693,14 +690,7 @@ module.exports = {
       });
 
       signUpChestCollector.on("end", async (collected) => {
-        if (!saleThread.locked) { 
-            client.addCurrentRosterToSale(
-              interaction.member,
-              saleProfile._id,
-              roster
-            );
-            signUpChestCollector.stop();
-        }
+        signUpChestCollector.stop();
       });
     }
     await threadHeader.pin();
@@ -766,15 +756,15 @@ module.exports = {
     collector.on("end", async (collected) => {
       if (!saleThread.locked) {
         await saleThread.send({
-          content: `Sign Ups have been closed and the current Roster is locked into the sale\nSale ID: ||\`${saleProfile._id}\`||`,
+          content: `Sign Ups have been closed and the current Roster is locked into the sale! Feel free to add/remove people from this sale.`,
         });
         client.addCurrentRosterToSale(
           interaction.member,
           saleProfile._id,
           roster
         );
-        collector.stop();
       }
+      collector.stop();
     });
 
     if (!hourReminder) {
