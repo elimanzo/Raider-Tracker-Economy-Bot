@@ -3,7 +3,7 @@ const { SlashCommandBuilder } = require("discord.js");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("add-raider-to-sale")
-    .setDescription("Return a completed sale form")
+    .setDescription("Adds Raider to an ongoing or completed sale")
     .addUserOption((option) =>
       option
         .setName("raider_id")
@@ -31,9 +31,25 @@ module.exports = {
     const profit = interaction.options.getInteger("gil");
     const threadId = interaction.channelId;
 
-    const saleProfile = await client.addRaiderToThreadSale(interaction.member, raider, profit, threadId);
+    const saleProfile = await client.findRaiderSaleByThread(
+      interaction.member,
+      threadId
+    );
 
     if (saleProfile) {
+      if (Date.now() < saleProfile.saleDate) {
+        await interaction.reply({
+          content: `You cannot add a raider till the roster is finalized`,
+          ephemeral: true
+        });
+        return;
+      }
+      await client.addRaiderToThreadSale(
+        interaction.member,
+        raider,
+        profit,
+        threadId
+      );
       await interaction.reply({
         content: `${raider} was added/updated`,
       });

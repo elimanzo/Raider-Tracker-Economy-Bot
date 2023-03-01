@@ -167,7 +167,6 @@ function updateRoster(
 
   chesterList.forEach(([key, value]) => rosterChesterIds.push(key));
   for (let [key, value] of signUps) {
-    
     if (rosterChesterIds.length != 0) {
       if (rosterChesterIds.indexOf(key) !== -1) {
         roster.subs.push([key, value]);
@@ -282,6 +281,7 @@ function editSignupMessage(
   chestSignUps,
   oneChesterAmount,
   roster,
+  comp,
   tankEmote,
   healerEmote,
   dpsEmote,
@@ -307,7 +307,15 @@ function editSignupMessage(
   }
 
   let edittedChestMessage = ``;
-  let edittedMessage = `**- Roster -**\n${tankEmote} - ${tanksRosterMessage.join(
+  let edittedMessage = `**- Comp -\n**${tankEmote} - **${
+    roster.tanks.length
+  } / ${comp.tankSize}**   ${healerEmote} - **${roster.healers.length} / ${
+    comp.healerSize
+  }**   ${dpsEmote} - **${roster.dps.length} / ${
+    comp.dpsSize
+  }**   ${chestEmote} - **Needs ${
+    comp.chestSize
+  } total**\n\n**- Roster -**\n${tankEmote} - ${tanksRosterMessage.join(
     ""
   )}\n${healerEmote} - ${healerRosterMessage.join(
     ""
@@ -417,7 +425,7 @@ module.exports = {
     let signUps = new Map();
     let chestSignUps = new Map();
     let roster = { tanks: [], healers: [], dps: [], subs: [] };
-    let hourReminder = false;
+    let halfHourReminder = false;
     let chesterPrio = false;
     const milliSec = 60000; // how many milliseconds in a minute
     const raiderRole = interaction.options.getMentionable("raiders_role");
@@ -436,7 +444,7 @@ module.exports = {
     const totalGil = interaction.options.getInteger("total_gil")
       ? interaction.options.getInteger("total_gil")
       : 0;
-    const saleDate =
+    let saleDate =
       interaction.options.getString("date").toUpperCase() === "ASAP"
         ? Date.now() + 30 * milliSec
         : Date.parse(interaction.options.getString("date"));
@@ -451,6 +459,7 @@ module.exports = {
     const chestEmote = client.emojis.cache.find(
       (emoji) => emoji.name == "chester"
     );
+    const closeSignUpEmote = "🗑️";
 
     // Input Validation
 
@@ -480,13 +489,22 @@ module.exports = {
       });
       return;
     }
+    
+    // Sale date cannot be longer than a 32 bit integer
+    if ((saleDate - Date.now()) > Math.pow(2, 31) - 1) {
+      await interaction.reply({
+        content: `Sales cannot be scheduled over 24.8 days out.`,
+        ephemeral: true,
+      });
+      return;
+    }
 
     // No hour reminder if there's an asap sale or the sales within the hour
     if (
       interaction.options.getString("date").toUpperCase() === "ASAP" ||
-      saleDate - Date.now() < 60 * milliSec
+      saleDate - Date.now() < 30 * milliSec
     ) {
-      hourReminder = true;
+      halfHourReminder = true;
     }
 
     // Checks if schedulers have priority (1 Role for now)
@@ -502,6 +520,16 @@ module.exports = {
           chestEmote,
           chesterPrio
         );
+        if (oneChesterAmount) {
+          chesterPrio = true;
+          setValue(
+            chestSignUps,
+            interaction.member.id,
+            tankEmote,
+            chestEmote,
+            chesterPrio
+          );
+        }
       } else if (
         schedulerPrivledge.toLowerCase() === "h" ||
         schedulerPrivledge.toLowerCase() === "healer"
@@ -513,6 +541,16 @@ module.exports = {
           chestEmote,
           chesterPrio
         );
+        if (oneChesterAmount) {
+          chesterPrio = true;
+          setValue(
+            chestSignUps,
+            interaction.member.id,
+            healerEmote,
+            chestEmote,
+            chesterPrio
+          );
+        }
       } else if (
         schedulerPrivledge.toLowerCase() === "d" ||
         schedulerPrivledge.toLowerCase() === "dps"
@@ -524,6 +562,16 @@ module.exports = {
           chestEmote,
           chesterPrio
         );
+        if (oneChesterAmount) {
+          chesterPrio = true;
+          setValue(
+            chestSignUps,
+            interaction.member.id,
+            dpsEmote,
+            chestEmote,
+            chesterPrio
+          );
+        }
       } else {
         await interaction.reply({
           content: `Incorrect Scheduler privledge role. \`(T/H/D)\``,
@@ -539,7 +587,6 @@ module.exports = {
         ? "ASAP"
         : new Date(saleDate).toLocaleDateString("en-us", {
             weekday: "short",
-            year: "numeric",
             month: "short",
             day: "numeric",
             hour: "numeric",
@@ -553,7 +600,7 @@ module.exports = {
       name: `${formattedDate} - ${content}`,
     });
 
-    const saleProfile = await client.createThreadSale(
+    let saleProfile = await client.createThreadSale(
       interaction.member,
       content,
       new Date(saleDate),
@@ -563,32 +610,27 @@ module.exports = {
       saleThread.url
     );
     await interaction.reply({
-      content: `Sale Has been Created!\nSale ID: ||\`${saleProfile._id}\`|| (Update/Delete Sale)`,
+      content: `Sale Has been Created!\nSale ID: \`${saleProfile._id}\` (Update/Delete Sale)`,
       ephemeral: true,
     });
     const threadHeader = await saleThread.send({
-      content: `Sale ID: ||\`${saleProfile._id}\`||\n<@&${
+      content: `Sale ID: \`${saleProfile._id}\`\n<@&${
         raiderRole.id
       }>\nContent: **${content}**\nDate: <t:${Math.floor(
         saleDate / 1000
-      )}:F> - <t:${Math.floor(saleDate / 1000)}:R>\nComp: **${
-        comp.tankSize
-      } ${tankEmote} ${comp.healerSize} ${healerEmote} ${
-        comp.dpsSize
-      } ${dpsEmote} ${
-        comp.chestSize
-      } ${chestEmote}**\nClient: ${clientId}\nSale Scheduler: <@${
-        interaction.member.id
-      }>\n`,
+      )}:F> - <t:${Math.floor(
+        saleDate / 1000
+      )}:R>\nClient: ${clientId}\nScheduler: <@${interaction.member.id}>\n`,
     });
     const signUpMessage = await saleThread.send({
-      content: `**- Roster -**\n${tankEmote} -\n${healerEmote} -\n${dpsEmote} -\n${subEmote} - \n\n**- Signups -**`,
+      content: `**- Comp -**\n${tankEmote} - **${roster.tanks.length} / ${comp.tankSize}**   ${healerEmote} - **${roster.healers.length} / ${comp.healerSize}**   ${dpsEmote} - **${roster.dps.length} / ${comp.dpsSize}**   ${chestEmote} - **Needs ${comp.chestSize} total**\n\n**- Roster -**\n${tankEmote} -\n${healerEmote} -\n${dpsEmote} -\n${subEmote} - \n\n**- Signups -**`,
       fetchReply: true,
     });
     let signUpChestMessage = null;
     await signUpMessage.react(tankEmote);
     await signUpMessage.react(healerEmote);
     await signUpMessage.react(dpsEmote);
+    await signUpMessage.react(closeSignUpEmote);
 
     if (schedulerPrivledge) {
       roster = updateRoster(
@@ -605,6 +647,7 @@ module.exports = {
         chestSignUps,
         oneChesterAmount,
         roster,
+        comp,
         tankEmote,
         healerEmote,
         dpsEmote,
@@ -613,7 +656,8 @@ module.exports = {
       );
     }
     const filter = (reaction, user) =>
-      ["tank", "healer", "dps"].includes(reaction.emoji.name) && !user.bot;
+      ["tank", "healer", "dps", "🗑️"].includes(reaction.emoji.name) &&
+      !user.bot;
     // Makes Roster Chest Prio
 
     if (oneChesterAmount) {
@@ -624,42 +668,49 @@ module.exports = {
       await signUpChestMessage.react(tankEmote);
       await signUpChestMessage.react(healerEmote);
       await signUpChestMessage.react(dpsEmote);
+      await signUpChestMessage.react(closeSignUpEmote);
 
       const signUpChestCollector = signUpChestMessage.createReactionCollector({
         filter,
         dispose: true,
-        time: saleDate - Date.now(),
       });
 
       signUpChestCollector.on("collect", (reaction, user) => {
         chesterPrio = true;
-        setValue(
-          chestSignUps,
-          user.id,
-          reaction.emoji,
-          chestEmote,
-          chesterPrio
-        );
-        roster = updateRoster(
-          signUps,
-          chestSignUps,
-          comp,
-          tankEmote,
-          healerEmote,
-          dpsEmote
-        );
-        editSignupMessage(
-          signUpMessage,
-          signUps,
-          chestSignUps,
-          oneChesterAmount,
-          roster,
-          tankEmote,
-          healerEmote,
-          dpsEmote,
-          subEmote,
-          chestEmote
-        );
+        if (reaction.emoji.name === "🗑️" && user.id === interaction.member.id) {
+          signUpChestCollector.stop();
+        }
+
+        if (reaction.emoji.name !== "🗑️") {
+          setValue(
+            chestSignUps,
+            user.id,
+            reaction.emoji,
+            chestEmote,
+            chesterPrio
+          );
+          roster = updateRoster(
+            signUps,
+            chestSignUps,
+            comp,
+            tankEmote,
+            healerEmote,
+            dpsEmote
+          );
+          editSignupMessage(
+            signUpMessage,
+            signUps,
+            chestSignUps,
+            oneChesterAmount,
+            roster,
+            comp,
+            tankEmote,
+            healerEmote,
+            dpsEmote,
+            subEmote,
+            chestEmote
+          );
+        }
       });
 
       signUpChestCollector.on("remove", (reaction, user) => {
@@ -681,6 +732,7 @@ module.exports = {
           chestSignUps,
           oneChesterAmount,
           roster,
+          comp,
           tankEmote,
           healerEmote,
           dpsEmote,
@@ -698,32 +750,38 @@ module.exports = {
     const collector = signUpMessage.createReactionCollector({
       filter,
       dispose: true,
-      time: saleDate - Date.now(),
     });
 
     collector.on("collect", (reaction, user) => {
       chesterPrio = false;
-      setValue(signUps, user.id, reaction.emoji, chestEmote, chesterPrio);
-      roster = updateRoster(
-        signUps,
-        chestSignUps,
-        comp,
-        tankEmote,
-        healerEmote,
-        dpsEmote
-      );
-      editSignupMessage(
-        signUpMessage,
-        signUps,
-        chestSignUps,
-        oneChesterAmount,
-        roster,
-        tankEmote,
-        healerEmote,
-        dpsEmote,
-        subEmote,
-        chestEmote
-      );
+      if (reaction.emoji.name === "🗑️" && user.id === interaction.member.id) {
+        collector.stop();
+      }
+
+      if (reaction.emoji.name !== "🗑️") {
+        setValue(signUps, user.id, reaction.emoji, chestEmote, chesterPrio);
+        roster = updateRoster(
+          signUps,
+          chestSignUps,
+          comp,
+          tankEmote,
+          healerEmote,
+          dpsEmote
+        );
+        editSignupMessage(
+          signUpMessage,
+          signUps,
+          chestSignUps,
+          oneChesterAmount,
+          roster,
+          comp,
+          tankEmote,
+          healerEmote,
+          dpsEmote,
+          subEmote,
+          chestEmote
+        );
+      }
     });
 
     collector.on("remove", (reaction, user) => {
@@ -745,6 +803,7 @@ module.exports = {
         chestSignUps,
         oneChesterAmount,
         roster,
+        comp,
         tankEmote,
         healerEmote,
         dpsEmote,
@@ -767,27 +826,53 @@ module.exports = {
       collector.stop();
     });
 
-    if (!hourReminder) {
-      setTimeout(async function () {
-        let reminderList = [];
-        for (let tank of roster.tanks) {
-          reminderList.push(`<@${tank[0]}> `);
+    // creating our timeout object for reminder ping
+    let reminderPingTimeout = setTimeout(async function () {});
+    // checks every 5 min if the sale was rescheduled
+    let checkRescheduled = setInterval(async function () {
+      saleProfile = await client.findRaiderSaleByThread(
+        interaction.member,
+        saleThread.id
+      );
+      // Sale was cancelled or does not exist (Clear Reminders)
+      if (!saleProfile) {
+        clearTimeout(reminderPingTimeout);
+        clearInterval(checkRescheduled);
+        return;
+      }
+      if (saleProfile.saleDate.getTime() !== saleDate || !halfHourReminder) {
+        clearTimeout(reminderPingTimeout);
+        saleDate = saleProfile.saleDate.getTime();
+        if (saleDate - Date.now() > 30 * milliSec) {
+          reminderPingTimeout = setTimeout(async function () {
+            let reminderList = [];
+            for (let tank of roster.tanks) {
+              reminderList.push(`<@${tank[0]}> `);
+            }
+            for (let healer of roster.healers) {
+              reminderList.push(`<@${healer[0]}> `);
+            }
+            for (let dps of roster.dps) {
+              reminderList.push(`<@${dps[0]}> `);
+            }
+            const reminderMsg = await saleThread.send({
+              content: `**- Reminder Ping -**\nSale is **<t:${Math.floor(
+                saleDate / 1000
+              )}:R>**\n${reminderList.join(
+                ""
+              )}\nReact to this by **<t:${Math.floor(
+                (saleDate - 10 * milliSec) / 1000
+              )}:t>** or you'll be replaced`,
+            });
+            reminderMsg.pin();
+          }, saleDate - Date.now() - 30 * milliSec);
+          halfHourReminder = true;
         }
-        for (let healer of roster.healers) {
-          reminderList.push(`<@${healer[0]}> `);
-        }
-        for (let dps of roster.dps) {
-          reminderList.push(`<@${dps[0]}> `);
-        }
-        const reminderMsg = await saleThread.send({
-          content: `**- Reminder Ping -**\nSale is **<t:${Math.floor(
-            saleDate / 1000
-          )}:R>**\n${reminderList.join("")}\nReact to this by **<t:${Math.floor(
-            (saleDate - 15 * milliSec) / 1000
-          )}:t>** or you'll be replaced`,
-        });
-        reminderMsg.pin();
-      }, saleDate - Date.now() - 60 * milliSec);
-    }
+      }
+      if (Date.now() >= saleDate) {
+        clearTimeout(reminderPingTimeout);
+        clearInterval(checkRescheduled);
+      }
+    }, 5 * milliSec);
   },
 };

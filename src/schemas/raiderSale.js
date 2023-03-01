@@ -5,7 +5,7 @@ const raiderSaleSchema = new Schema({
   saleType: String,
   scheduler: String,
   clientId: String,
-  saleThread: {type: Schema.Types.Mixed, default: {}},
+  saleThread: { type: Schema.Types.Mixed, default: {} },
   saleThreadUrl: String,
   saleDate: {
     type: Date,
@@ -16,8 +16,8 @@ const raiderSaleSchema = new Schema({
     default: new Date(),
   },
   raiders: {
-    raiderIds: {type: [String], default: []},
-    raiderPayout: {type: [Number], default: []},
+    raiderIds: { type: [String], default: [] },
+    raiderPayout: { type: [Number], default: [] },
     totalRaiders: { type: Number, default: 0 },
   },
   gilProfit: { type: Number, default: 0 },

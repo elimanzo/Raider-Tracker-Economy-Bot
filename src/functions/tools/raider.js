@@ -19,8 +19,9 @@ module.exports = (client) => {
       joinedDate: new Date(joinedTimestamp),
       lastSale: Date.now(),
       lastSignup: Date.now(),
-      houseAddress: `No address, use \`/update-housing discord-user <@${user.id}>\``,
-      server: `No server, use \`/update-housing discord-user <@${user.id}>\``,
+      dataCenter: "No Data Center",
+      houseAddress: "No Addresses",
+      server: "No Server",
     });
     raiderProfile.save().catch((err) => consolelog(err));
     return raiderProfile;
@@ -132,7 +133,8 @@ module.exports = (client) => {
     member,
     discordUserId,
     address,
-    raiderServer
+    raiderServer,
+    raiderDataCenter
   ) => {
     let raiderProfile = await Raider.findOne({
       guildId: member.guild.id,
@@ -146,7 +148,11 @@ module.exports = (client) => {
         guildId: member.guild.id,
         userId: discordUserId,
       },
-      { houseAddress: address, server: raiderServer }
+      {
+        houseAddress: address,
+        server: raiderServer,
+        dataCenter: raiderDataCenter,
+      }
     );
 
     return raiderProfile;
@@ -264,7 +270,7 @@ module.exports = (client) => {
   client.getSaleAddresses = async (saleProfile) => {
     const raidersProfile = await Raider.find({
       sales: saleProfile._id,
-    }).sort({ server: 1 });
+    }).sort({ dataCenter: 1, server: 1 });
     return raidersProfile;
   };
   client.createThreadSale = async (
@@ -412,5 +418,15 @@ module.exports = (client) => {
     await RaiderSale.findOneAndDelete({
       saleThread: threadId,
     });
+  };
+  client.rescheduleSaleByThread = async (member, threadId, newSaleDate) => {
+    const saleProfile = await RaiderSale.findOneAndUpdate(
+      { saleThread: threadId, guildId: member.guild.id },
+      { saleDate: newSaleDate }
+    );
+    if (!saleProfile) {
+      return null;
+    }
+    return saleProfile;
   };
 };

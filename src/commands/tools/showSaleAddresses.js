@@ -38,8 +38,9 @@ module.exports = {
       const raidersProfile = await client.getSaleAddresses(saleProfile);
       let addressList = [];
       for(let raider of raidersProfile) {
-        addressList.push(`<@${raider.userId}> Server: **${raider.server}** Address: **${raider.server}**\n`)
+        addressList.push(`<@${raider.userId}> Data Center: \`${raider.dataCenter}\` Server: \`${raider.server}\` Address: \`${raider.houseAddress}\`\n`)
       }
+      if (addressList.length == 0) addressList.push('There\'s no roster yet, or any Raider added to the sale');
       await interaction.reply({
         content: addressList.join(''),
       });

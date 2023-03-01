@@ -56,6 +56,13 @@ module.exports = {
       .setStyle(TextInputStyle.Short)
       .setPlaceholder("Raider's Discord ID")
       .setValue(`${user.id}`);
+    const dataCenter = new TextInputBuilder()
+      .setCustomId("dataCenter")
+      .setLabel(`Data Center`)
+      .setRequired(true)
+      .setStyle(TextInputStyle.Short)
+      .setPlaceholder("Data Center")
+      .setValue(`${raiderProfile.dataCenter}`);
     const server = new TextInputBuilder()
       .setCustomId("server")
       .setLabel(`Server`)
@@ -73,6 +80,7 @@ module.exports = {
 
     modal.addComponents(
       new ActionRowBuilder().addComponents(discordId),
+      new ActionRowBuilder().addComponents(dataCenter),
       new ActionRowBuilder().addComponents(server),
       new ActionRowBuilder().addComponents(address)
     );

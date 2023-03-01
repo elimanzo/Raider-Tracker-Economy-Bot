@@ -3,7 +3,7 @@ const { SlashCommandBuilder } = require("discord.js");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("cancel-sale")
-    .setDescription("Return a completed sale form")
+    .setDescription("Cancels an ongoing or completed sale")
     .addStringOption((option) =>
       option
         .setName("confirmation")
@@ -41,12 +41,11 @@ module.exports = {
           saleProfile._id.toString(),
           true
         );
-
-        await client.deleteRaiderSaleThread(threadId);
       }
       await interaction.reply({
         content: `Sale has been cancelled!`,
       });
+      await client.deleteRaiderSaleThread(threadId);
       await interaction.channel.setName("CANCELLED");
       await interaction.channel.setLocked(true);
       await interaction.channel.setArchived(true);

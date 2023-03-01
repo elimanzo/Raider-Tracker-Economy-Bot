@@ -46,7 +46,7 @@ module.exports = {
       );
       if (!saleProfile) {
         await interaction.reply({
-          content: `Command \`/show-sale\` is not in it\'s appropriate Sale Thread`,
+          content: `Command \`/update-sale-client-scheduler\` is not in it\'s appropriate Sale Thread`,
           ephemeral: true,
         });
         return;

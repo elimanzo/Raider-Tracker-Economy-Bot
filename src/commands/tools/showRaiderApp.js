@@ -60,6 +60,10 @@ module.exports = {
           )}:R>`,
         },
         {
+          name: `dataCenter`,
+          value: `${raiderProfile.dataCenter}`,
+        },
+        {
           name: `Server`,
           value: `${raiderProfile.server}`,
         },

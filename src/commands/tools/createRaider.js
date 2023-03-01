@@ -84,6 +84,10 @@ module.exports = {
           value: `<t:${Math.floor(raiderProfile.lastSignup.getTime() / 1000)}:R>`,
         },
         {
+          name: `Data Center`,
+          value: `${raiderProfile.dataCenter}`,
+        },
+        {
           name: `Server`,
           value: `${raiderProfile.server}`,
         },

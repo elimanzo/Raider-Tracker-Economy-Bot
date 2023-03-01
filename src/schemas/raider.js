@@ -4,6 +4,7 @@ const raiderSchema = new Schema({
   guildId: String,
   userName: String,
   userId: String,
+  dataCenter: String,
   server: String,
   houseAddress: String,
   lastSale: {

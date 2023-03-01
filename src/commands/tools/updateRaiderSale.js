@@ -10,13 +10,8 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("update-sale")
     .setDescription("Updates Sale Information")
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("sale")
-        .setDescription("Shows sale from the ID provided")
-        .addStringOption((option) =>
-          option.setName("sale_id").setDescription("Sale ID'").setRequired(true)
-        )
+    .addStringOption((option) =>
+      option.setName("sale_id").setDescription("Sale ID'")
     ),
   async execute(interaction, client) {
     if (interaction.member._roles.indexOf(process.env.SCHEDULER_ID) === -1) {
@@ -26,15 +21,32 @@ module.exports = {
       });
       return;
     }
+    const threadId = interaction.channelId;
     const saleId = interaction.options.getString("sale_id");
-    const saleProfile = await client.findRaiderSale(saleId);
-
-    if (!saleProfile) {
-      await interaction.reply({
-        content: `Sale ID: **${saleId}** does not exist `,
-      });
-      return;
+    let saleProfile = null;
+    if (saleId) {
+      saleProfile = await client.findRaiderSale(saleId);
+      if (!saleProfile) {
+        await interaction.reply({
+          content: `Sale ID: **${saleId}** does not exist `,
+          ephemeral: true,
+        });
+        return;
+      }
+    } else {
+      saleProfile = await client.findRaiderSaleByThread(
+        interaction.member,
+        threadId
+      );
+      if (!saleProfile) {
+        await interaction.reply({
+          content: `Command \`/update-sale\` is not in it\'s appropriate Sale Thread`,
+          ephemeral: true,
+        });
+        return;
+      }
     }
+
     const modal = new ModalBuilder()
       .setCustomId(`raiderUpdateSaleForm`)
       .setTitle(`Roll Raider Sale`);

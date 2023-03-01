@@ -30,21 +30,32 @@ module.exports = {
     const raider = interaction.options.getUser("raider_id");
     const threadId = interaction.channelId;
     const confirmation = interaction.options.getString("confirmation");
-    if (confirmation.toUpperCase() !== "YES") { 
+    if (confirmation.toUpperCase() !== "YES") {
       await interaction.reply({
         content: `${raider} was not removed`,
-        ephemeral: true
+        ephemeral: true,
       });
       return;
-    } 
+    }
 
-    const saleProfile = await client.removeRaiderFromThreadSale(
+    const saleProfile = await client.findRaiderSaleByThread(
       interaction.member,
-      raider,
       threadId
     );
 
     if (saleProfile) {
+      if (Date.now() < saleProfile.saleDate) {
+        await interaction.reply({
+          content: `You cannot remove a raider till the roster is finalized`,
+          ephemeral: true
+        });
+        return;
+      }
+      await client.removeRaiderFromThreadSale(
+        interaction.member,
+        raider,
+        threadId
+      );
       await interaction.reply({
         content: `${raider} was removed from the sale!`,
       });
