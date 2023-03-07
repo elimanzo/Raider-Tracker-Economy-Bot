@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 
+const timeout = new Map();
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("reschedule-sale")
@@ -33,6 +35,7 @@ module.exports = {
       return;
     }
     const milliSec = 60000; // how many milliseconds in a minute
+    const commandCooldown = 10 * milliSec; // 10 min command cooldown
     const saleDate =
       interaction.options.getString("date").toUpperCase() === "ASAP"
         ? Date.now() + 30 * milliSec
@@ -60,7 +63,7 @@ module.exports = {
     }
 
     // Sale date cannot be longer than a 32 bit integer
-    if ((saleDate - Date.now()) > Math.pow(2, 31) - 1) {
+    if (saleDate - Date.now() > Math.pow(2, 31) - 1) {
       await interaction.reply({
         content: `Sales cannot be scheduled over 24.8 days out.`,
         ephemeral: true,
@@ -69,10 +72,9 @@ module.exports = {
     }
 
     if (confirmation.toUpperCase() === "YES") {
-      const saleProfile = await client.rescheduleSaleByThread(
+      let saleProfile = await client.findRaiderSaleByThread(
         interaction.member,
-        threadId,
-        new Date(saleDate)
+        threadId
       );
 
       if (!saleProfile) {
@@ -81,6 +83,26 @@ module.exports = {
         });
         return;
       }
+
+      // Rescheduling timeout for Discords API Rate Limits
+      if (timeout.has(threadId)) {
+        return await interaction.reply({
+          content: `Rescheduling this sale is on cooldown, please wait ${
+            Math.trunc((timeout.get(threadId) + commandCooldown - Date.now()) / 1000)
+          } second(s) to reschedule again.`,
+          ephemeral: true,
+        });
+      }
+      timeout.set(threadId, Date.now());
+      setTimeout(() => {
+        timeout.delete(threadId);
+      }, commandCooldown);
+
+      saleProfile = await client.rescheduleSaleByThread(
+        interaction.member,
+        threadId,
+        new Date(saleDate)
+      );
 
       // Clean Thread Titles
       const formattedDate =

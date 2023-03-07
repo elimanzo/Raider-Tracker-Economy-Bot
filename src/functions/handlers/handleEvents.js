@@ -9,6 +9,7 @@ module.exports = (client) => {
         .readdirSync(`./src/events/${folder}`)
         .filter((file) => file.endsWith(".js"));
       switch (folder) {
+        case "ticket":
         case "client":
           for (const file of eventFiles) {
             const event = require(`../../events/${folder}/${file}`);
